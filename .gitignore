@@ -1,0 +1,3 @@
+# Ingore anything from the rAthena source used for testing.
+src/
+.idea

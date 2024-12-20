@@ -1,0 +1,67 @@
+services:
+
+  database:
+    image: mysql:5.7
+    hostname: database
+    volumes:
+      - preserve_db:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=1234
+    networks:
+      - rathena
+
+  login-server:
+    command:
+      - /opt/rathena/login-server
+    volumes:
+      - ./src/conf:/opt/rathena/conf
+    build:
+      dockerfile: Dockerfile
+      context: alpine3.19/
+      target: release
+    ports:
+      - "6900"
+    networks:
+      - rathena
+    links:
+      - database
+
+  char-server:
+    command:
+      - /opt/rathena/map-server
+    volumes:
+      - ./src/conf:/opt/rathena/conf
+    build:
+      dockerfile: Dockerfile
+      context: alpine3.19/
+      target: release
+    ports:
+      - "6121"
+    networks:
+      - rathena
+    links:
+      - database
+
+  map-server:
+    command:
+      - /opt/rathena/map-server
+    volumes:
+      - ./src/conf:/opt/rathena/conf
+    build:
+      dockerfile: Dockerfile
+      context: alpine3.19/
+      target: release
+    ports:
+      - "5121"
+    networks:
+      - rathena
+    links:
+      - database
+
+networks:
+  rathena:
+    external: true
+volumes:
+  preserve_db:
