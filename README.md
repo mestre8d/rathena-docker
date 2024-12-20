@@ -2,6 +2,9 @@
 
 A container image that can compile and run rAthena emulator.
 
+[![Build and publish manually](https://github.com/mestre8d/rathena-docker/actions/workflows/build.yaml/badge.svg?event=workflow_dispatch)](https://github.com/mestre8d/rathena-docker/actions/workflows/build.yaml) 
+![GitHub License](https://img.shields.io/github/license/mestre8d/rathena-docker?style=flat)
+
 ## How it works
 
 The image only clones the rAthena official repository from GitHub and builds the server executables.
