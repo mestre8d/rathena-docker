@@ -21,7 +21,7 @@ permissions:
 jobs:
   build_and_push:
     name: "Build the image on Debian"
-    runs-on: ubuntu-latest
+    runs-on: arm64-rasp
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -42,67 +42,10 @@ jobs:
       - name: Build and push release image
         uses: docker/build-push-action@v6
         with:
-          platforms: linux/amd64
+          platforms: linux/arm64
           push: true
           tags: ghcr.io/${{ github.repository }}:${{github.event.inputs.version }}-debian
           context: debian/
-
-      - name: Update multi-arch manifest (x86)
-        run: |
-          BASE_IMAGE="ghcr.io/${{ github.repository }}"
-          IMAGE_TAG="${{github.event.inputs.version }}-debian"
-          
-          AMD64_TAG="${BASE_IMAGE}:${IMAGE_TAG}-amd64"
-          ARM64_TAG="${BASE_IMAGE}:${IMAGE_TAG}-arm64"
-          MULTI_TAG="${BASE_IMAGE}:${IMAGE_TAG}"
-          LATEST_TAG="${BASE_IMAGE}:latest"
-          
-          echo "Checking if ARM64 image exists: ${ARM64_TAG}"
-          if docker manifest inspect "${ARM64_TAG}" > /dev/null 2>&1; then
-            echo "ARM64 image found, creating multi-arch manifest with amd64 + arm64"
-          
-            docker manifest create "${MULTI_TAG}" \
-              "${AMD64_TAG}" \
-              "${ARM64_TAG}"
-          
-            docker manifest annotate "${MULTI_TAG}" "${AMD64_TAG}" \
-              --os linux --arch amd64
-            docker manifest annotate "${MULTI_TAG}" "${ARM64_TAG}" \
-              --os linux --arch arm64
-          
-            docker manifest push "${MULTI_TAG}"
-          
-            echo "Also updating :latest manifest"
-            docker manifest create "${LATEST_TAG}" \
-              "${AMD64_TAG}" \
-              "${ARM64_TAG}"
-          
-            docker manifest annotate "${LATEST_TAG}" "${AMD64_TAG}" \
-              --os linux --arch amd64
-            docker manifest annotate "${LATEST_TAG}" "${ARM64_TAG}" \
-              --os linux --arch arm64
-          
-            docker manifest push "${LATEST_TAG}"
-          else
-            echo "ARM64 image not found; creating manifest with amd64 only"
-          
-            docker manifest create "${MULTI_TAG}" \
-              "${AMD64_TAG}"
-          
-            docker manifest annotate "${MULTI_TAG}" "${AMD64_TAG}" \
-              --os linux --arch amd64
-          
-            docker manifest push "${MULTI_TAG}"
-          
-            echo "Also updating :latest manifest (amd64 only for now)"
-            docker manifest create "${LATEST_TAG}" \
-              "${AMD64_TAG}"
-          
-            docker manifest annotate "${LATEST_TAG}" "${AMD64_TAG}" \
-              --os linux --arch amd64
-          
-            docker manifest push "${LATEST_TAG}"
-          fi
 
   build_and_push_alpine:
     name: "Build the image on Alpine"
@@ -127,67 +70,10 @@ jobs:
       - name: Build and push release image
         uses: docker/build-push-action@v6
         with:
-          platforms: linux/amd64
+          platforms: linux/arm64
           push: true
           tags: ghcr.io/${{ github.repository }}:${{github.event.inputs.version }}-alpine
           context: alpine/
-
-      - name: Update multi-arch manifest (arm64)
-        run: |
-          BASE_IMAGE="ghcr.io/${{ github.repository }}"
-          IMAGE_TAG="${{github.event.inputs.version }}-alpine"
-          
-          AMD64_TAG="${BASE_IMAGE}:${IMAGE_TAG}-amd64"
-          ARM64_TAG="${BASE_IMAGE}:${IMAGE_TAG}-arm64"
-          MULTI_TAG="${BASE_IMAGE}:${IMAGE_TAG}"
-          LATEST_TAG="${BASE_IMAGE}:latest"
-          
-          echo "Checking if AMD64 image exists: ${AMD64_TAG}"
-          if docker manifest inspect "${AMD64_TAG}" > /dev/null 2>&1; then
-            echo "AMD64 image found, creating multi-arch manifest with amd64 + arm64"
-          
-            docker manifest create "${MULTI_TAG}" \
-              "${AMD64_TAG}" \
-              "${ARM64_TAG}"
-          
-            docker manifest annotate "${MULTI_TAG}" "${AMD64_TAG}" \
-              --os linux --arch amd64
-            docker manifest annotate "${MULTI_TAG}" "${ARM64_TAG}" \
-              --os linux --arch arm64
-          
-            docker manifest push "${MULTI_TAG}"
-          
-            echo "Also updating :latest manifest"
-            docker manifest create "${LATEST_TAG}" \
-              "${AMD64_TAG}" \
-              "${ARM64_TAG}"
-          
-            docker manifest annotate "${LATEST_TAG}" "${AMD64_TAG}" \
-              --os linux --arch amd64
-            docker manifest annotate "${LATEST_TAG}" "${ARM64_TAG}" \
-              --os linux --arch arm64
-          
-            docker manifest push "${LATEST_TAG}"
-          else
-            echo "AMD64 image not found; creating manifest with arm64 only"
-          
-            docker manifest create "${MULTI_TAG}" \
-              "${ARM64_TAG}"
-          
-            docker manifest annotate "${MULTI_TAG}" "${ARM64_TAG}" \
-              --os linux --arch arm64
-          
-            docker manifest push "${MULTI_TAG}"
-          
-            echo "Also updating :latest manifest (arm64 only for now)"
-            docker manifest create "${LATEST_TAG}" \
-              "${ARM64_TAG}"
-          
-            docker manifest annotate "${LATEST_TAG}" "${ARM64_TAG}" \
-              --os linux --arch arm64
-          
-            docker manifest push "${LATEST_TAG}"
-          fi
 
   sign_image:
     name: "Sign the image"
